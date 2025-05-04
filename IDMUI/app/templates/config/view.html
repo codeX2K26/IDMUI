@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Service Configuration{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4><i class="fas fa-cogs"></i> Service Configuration</h4>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateConfigModal">
+                    <i class="fas fa-edit"></i> Edit Configuration
+                </button>
+            </div>
+            <div class="card-body">
+                {% for section in config.sections() %}
+                <div class="config-section mb-4">
+                    <h5 class="mb-3 text-primary">[{{ section }}]</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            {% for key, value in config.items(section) %}
+                            <tr>
+                                <td class="config-key">{{ key }}</td>
+                                <td class="config-value">{{ value }}</td>
+                            </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Config Modal -->
+<div class="modal fade" id="updateConfigModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Configuration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('config.update_config') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Section</label>
+                        <select class="form-select" name="section" required>
+                            {% for section in config.sections() %}
+                            <option value="{{ section }}">{{ section }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Key</label>
+                        <input type="text" class="form-control" name="key" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Value</label>
+                        <input type="text" class="form-control" name="value" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.config-key { width: 35%; font-weight: 500; }
+.config-value { width: 65%; font-family: monospace; }
+</style>
+{% endblock %}

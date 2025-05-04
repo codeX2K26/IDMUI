@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Token Management{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-key"></i> Token Management</h4>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Issued At</th>
+                                <th>Expires At</th>
+                                <th>User</th>
+                                <th>Project</th>
+                                <th>Scope</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for token in tokens %}
+                            <tr>
+                                <td>{{ token.issued_at|datetimeformat }}</td>
+                                <td>{{ token.expires_at|datetimeformat }}</td>
+                                <td>{{ token.user.name }}</td>
+                                <td>{{ token.project.name }}</td>
+                                <td>{{ token.roles|join(', ') }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger" 
+                                            onclick="revokeToken('{{ token.id }}')">
+                                        <i class="fas fa-ban"></i> Revoke
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function revokeToken(tokenId) {
+    if(confirm('Are you sure you want to revoke this token?')) {
+        fetch(`/tokens/revoke/${tokenId}`, { method: 'POST' })
+            .then(response => location.reload());
+    }
+}
+</script>
+{% endblock %}
