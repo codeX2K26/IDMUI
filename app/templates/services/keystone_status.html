@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Keystone Status{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-server"></i> Keystone Service Status</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-light mb-3">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Service Status</h5>
+                                <span class="badge bg-{{ 'success' if status.active else 'danger' }}">
+                                    {{ 'Running' if status.active else 'Stopped' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="btn-group float-end">
+                            <a href="{{ url_for('service_management.service_control', action='start') }}" 
+                               class="btn btn-success" {{ 'disabled' if status.active }}>
+                                <i class="fas fa-play"></i> Start
+                            </a>
+                            <a href="{{ url_for('service_management.service_control', action='stop') }}" 
+                               class="btn btn-danger" {{ 'disabled' if not status.active }}>
+                                <i class="fas fa-stop"></i> Stop
+                            </a>
+                            <a href="{{ url_for('service_management.service_control', action='restart') }}" 
+                               class="btn btn-warning">
+                                <i class="fas fa-redo"></i> Restart
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

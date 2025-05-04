@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Service Control{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-cogs"></i> Keystone Service Control</h4>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-4 text-center">
+                        <div class="service-status-indicator">
+                            <i class="fas fa-server fa-4x mb-3"></i>
+                            <h3 class="status-text">
+                                <span class="badge bg-{% if service_status.active %}success{% else %}danger{% endif %}">
+                                    {{ 'RUNNING' if service_status.active else 'STOPPED' }}
+                                </span>
+                            </h3>
+                            <p class="text-muted">PID: {{ service_status.pid|default('N/A', true) }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-8">
+                        <div class="service-controls">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <button 
+                                        class="btn btn-lg w-100 {% if service_status.active %}btn-success{% else %}btn-outline-success{% endif %}" 
+                                        id="startButton"
+                                        data-service-action="start"
+                                        {% if service_status.active %}disabled{% endif %}
+                                    >
+                                        <i class="fas fa-play-circle"></i> Start Service
+                                    </button>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <button 
+                                        class="btn btn-lg w-100 {% if not service_status.active %}btn-danger{% else %}btn-outline-danger{% endif %}" 
+                                        id="stopButton"
+                                        data-service-action="stop"
+                                        {% if not service_status.active %}disabled{% endif %}
+                                    >
+                                        <i class="fas fa-stop-circle"></i> Stop Service
+                                    </button>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <button 
+                                        class="btn btn-lg w-100 btn-warning" 
+                                        id="restartButton"
+                                        data-service-action="restart"
+                                        {% if not service_status.active %}disabled{% endif %}
+                                    >
+                                        <i class="fas fa-redo-alt"></i> Restart Service
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="service-details mt-4">
+                    <h5><i class="fas fa-info-circle"></i> Service Details</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-5">Uptime:</dt>
+                                <dd class="col-sm-7">{{ service_status.uptime|default('N/A', true) }}</dd>
+                                
+                                <dt class="col-sm-5">Version:</dt>
+                                <dd class="col-sm-7">{{ service_status.version|default('N/A', true) }}</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-5">Memory Usage:</dt>
+                                <dd class="col-sm-7">{{ service_status.memory|default('N/A', true) }} MB</dd>
+                                
+                                <dt class="col-sm-5">CPU Usage:</dt>
+                                <dd class="col-sm-7">{{ service_status.cpu|default('N/A', true) }}%</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Service Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmActionButton">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Attach event listeners to buttons
+    document.querySelectorAll("[data-service-action]").forEach(button => {
+        button.addEventListener("click", function () {
+            const action = this.dataset.serviceAction;
+            confirmAction(action);
+        });
+    });
+});
+
+function controlService(action) {
+    fetch(`/service/control/${action}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            showMessage('Service control failed', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('Service control failed', 'danger');
+    });
+}
+
+function confirmAction(action) {
+    const modal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+    const message = `Are you sure you want to ${action} the Keystone service?`;
+    document.getElementById('modalMessage').textContent = message;
+    
+    document.getElementById('confirmActionButton').onclick = () => {
+        modal.hide();
+        controlService(action);
+    };
+    
+    modal.show();
+}
+
+// Auto-refresh status every 10 seconds
+setInterval(() => {
+    fetch('/service/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.active !== {{ 'true' if service_status.active else 'false' }}) {
+                location.reload();
+            }
+        });
+}, 10000);
+</script>
+
+<style>
+.service-status-indicator {
+    background-color: #f8f9fa;
+    border-radius: 15px;
+    padding: 2rem;
+    border: 2px solid #dee2e6;
+}
+
+.service-controls .btn {
+    transition: all 0.3s ease;
+    padding: 1.5rem;
+    font-size: 1.1rem;
+}
+
+.service-controls .btn:disabled {
+    opacity: 0.7;
+}
+
+.status-text .badge {
+    font-size: 1.2rem;
+    padding: 0.75rem 1.5rem;
+}
+</style>
+{% endblock %}
