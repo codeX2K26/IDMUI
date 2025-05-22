@@ -5,25 +5,28 @@ from config import Config
 import logging
 from logging.handlers import RotatingFileHandler
 from flask_wtf.csrf import CSRFProtect
+from flask_socketio import SocketIO
 
 # Initialize extensions
 db = SQLAlchemy()
 login_manager = LoginManager()
 csrf = CSRFProtect()
+socketio = SocketIO()
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    
+
     # Initialize extensions with app
     db.init_app(app)
     login_manager.init_app(app)
     csrf.init_app(app)
-    
+    socketio.init_app(app)
+
     # Configure login manager
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'danger'
-    
+
     # Set up logging
     if not app.debug:
         file_handler = RotatingFileHandler(
@@ -66,11 +69,11 @@ def create_app():
         try:
             db.create_all()
             app.logger.info("Database tables created successfully")
-            
+
             # Initialize default data if needed
             from app.utils.database import init_db
             init_db()
-            
+
         except Exception as e:
             app.logger.error(f"Database initialization failed: {str(e)}")
             raise
@@ -91,3 +94,6 @@ def create_app():
         return response
 
     return app
+
+# Export create_app and socketio for use in run.py
+__all__ = ['create_app', 'socketio']
