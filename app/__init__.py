@@ -12,7 +12,7 @@ login_manager = LoginManager()
 csrf = CSRFProtect()
 
 def create_app():
-    app = Flask(_name_)
+    app = Flask(__name__)
     app.config.from_object(Config)
     
     # Initialize extensions with app
