@@ -21,7 +21,7 @@ def initialize_application():
             app.logger.error(f"Application initialization failed: {str(e)}")
             raise
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     # Configure logging before starting
     logging.basicConfig(
         level=logging.INFO,
@@ -42,7 +42,7 @@ if _name_ == '_main_':
     socketio.run(
         app,
         host='0.0.0.0',
-        port=port,
+        port=5001,
         debug=app.debug,
         use_reloader=False if app.config.get('TESTING') else True
     )
