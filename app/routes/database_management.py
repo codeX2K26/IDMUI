@@ -1,12 +1,12 @@
-from flask import Blueprint, send_file
+from flask import Blueprint, send_file, request, flash, redirect, url_for
 from flask_login import login_required
 import subprocess
 from io import BytesIO
 from datetime import datetime
 
-db_bp = Blueprint('database', __name__)
+database_bp = Blueprint('database', __name__)
 
-@db_bp.route('/backup')
+@database_bp.route('/backup')
 @login_required
 def backup_database():
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -26,17 +26,17 @@ def backup_database():
         mimetype='application/sql'
     )
 
-@db_bp.route('/restore', methods=['POST'])
+@database_bp.route('/restore', methods=['POST'])
 @login_required
 def restore_database():
     if 'backup_file' not in request.files:
         flash('No file selected', 'danger')
-        return redirect(url_for('some_route'))
+        return redirect(url_for('database.backup_database'))
     
     file = request.files['backup_file']
     if file.filename == '':
         flash('No selected file', 'danger')
-        return redirect(url_for('some_route'))
+        return redirect(url_for('database.backup_database'))
     
     # Execute mysql restore
     proc = subprocess.Popen(
