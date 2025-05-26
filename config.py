@@ -20,7 +20,7 @@ class Config:
     # ========================
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         'DATABASE_URL',
-        'mysql+pymysql://idmui_user:your_password@localhost/idmui_db'
+        'mysql+pymysql://idmui_user:Your_password1!@localhost/idmui_db'
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
