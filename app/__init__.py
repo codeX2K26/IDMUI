@@ -67,6 +67,9 @@ def create_app():
 
     with app.app_context():
         try:
+            # ✅ Import all models BEFORE db.create_all()
+            from app.models import User, ActivityLog
+
             db.create_all()
             app.logger.info("Database tables created successfully")
 
