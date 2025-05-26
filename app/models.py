@@ -6,17 +6,17 @@ from sqlalchemy import event
 import re
 
 class User(db.Model, UserMixin):
-    _tablename_ = 'users'
+    __tablename__ = 'users'  # FIXED: double underscores
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False, index=True)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)  # Added email field
-    password_hash = db.Column(db.String(256), nullable=False)  # Increased length for future algorithms
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(64), default='user', nullable=False)
-    is_active = db.Column(db.Boolean, default=True, nullable=False)  # For account activation
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
-    last_password_change = db.Column(db.DateTime)  # Track password changes
+    last_password_change = db.Column(db.DateTime)
 
     # Relationship
     activities = db.relationship('ActivityLog', back_populates='user', lazy='dynamic')
@@ -39,24 +39,26 @@ class User(db.Model, UserMixin):
         """Verify password with timing attack protection"""
         return check_password_hash(self.password_hash, password)
 
-    def _repr_(self):
+    def __repr__(self):
         return f'<User {self.username}>'
 
+
 class ActivityLog(db.Model):
-    _tablename_ = 'activity_logs'
+    __tablename__ = 'activity_logs'  # FIXED: double underscores
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
-    action = db.Column(db.String(512), nullable=False)  # Increased action detail capacity
+    action = db.Column(db.String(512), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     ip_address = db.Column(db.String(45))
-    user_agent = db.Column(db.Text)  # Track browser/device info
+    user_agent = db.Column(db.Text)
 
     # Relationship
     user = db.relationship('User', back_populates='activities')
 
-    def _repr_(self):
+    def __repr__(self):
         return f'<ActivityLog {self.action} at {self.timestamp}>'
+
 
 # Indexes
 db.Index('ix_users_email', User.email, unique=True)
