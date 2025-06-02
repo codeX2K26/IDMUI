@@ -27,14 +27,24 @@ def create_app():
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'danger'
 
-    from app.models import User  # Ensure User model is imported
+    from app.models import User  # ✅ Ensure User model is imported
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))  # User loader callback for Flask-Login
+        return User.query.get(int(user_id))  # ✅ User loader callback for Flask-Login
 
-    # Import LoginForm here to use in root route
-    from app.forms import LoginForm
+    # Set up logging
+    if not app.debug:
+        file_handler = RotatingFileHandler(
+            'idmui.log',
+            maxBytes=1024 * 1024,
+            backupCount=10
+        )
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        app.logger.addHandler(file_handler)
+        app.logger.setLevel(logging.INFO)
 
     # Register blueprints
     from app.routes.auth import auth_bp
@@ -61,15 +71,14 @@ def create_app():
     app.register_blueprint(token_bp)
     app.register_blueprint(group_bp)
 
-    # Root route to render the login page with LoginForm instance
+    # ✅ Root route to render the login page directly
     @app.route('/')
     def root():
-        form = LoginForm()
-        return render_template('auth/login.html', form=form)
+        return render_template('auth/login.html')
 
     with app.app_context():
         try:
-            # Import all models BEFORE db.create_all()
+            # ✅ Import all models BEFORE db.create_all()
             from app.models import ActivityLog
 
             db.create_all()
