@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import Config
@@ -64,6 +64,11 @@ def create_app():
     app.register_blueprint(metrics_bp)
     app.register_blueprint(token_bp)
     app.register_blueprint(group_bp)
+
+    # ✅ Root route to show login.html
+    @app.route('/')
+    def root():
+        return render_template('auth/login.html')
 
     with app.app_context():
         try:
