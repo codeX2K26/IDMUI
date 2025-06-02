@@ -6,7 +6,7 @@ from sqlalchemy import event
 import re
 
 class User(db.Model, UserMixin):
-    __tablename__ = 'users'  # FIXED: double underscores
+    __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False, index=True)
@@ -42,9 +42,8 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return f'<User {self.username}>'
 
-
 class ActivityLog(db.Model):
-    __tablename__ = 'activity_logs'  # FIXED: double underscores
+    __tablename__ = 'activity_logs'
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
@@ -59,10 +58,7 @@ class ActivityLog(db.Model):
     def __repr__(self):
         return f'<ActivityLog {self.action} at {self.timestamp}>'
 
-
-# Indexes
-db.Index('ix_users_email', User.email, unique=True)
-db.Index('ix_activity_logs_timestamp', ActivityLog.timestamp)
+# ✅ Removed manual indexes — already covered by `index=True`
 
 # Event listener for password changes
 @event.listens_for(User.password_hash, 'set')
