@@ -27,6 +27,12 @@ def create_app():
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'danger'
 
+    from app.models import User  # ✅ Ensure User model is imported
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))  # ✅ User loader callback for Flask-Login
+
     # Set up logging
     if not app.debug:
         file_handler = RotatingFileHandler(
@@ -65,7 +71,7 @@ def create_app():
     app.register_blueprint(token_bp)
     app.register_blueprint(group_bp)
 
-    # ✅ Root route to show login.html
+    # ✅ Root route to render the login page directly
     @app.route('/')
     def root():
         return render_template('auth/login.html')
@@ -73,7 +79,7 @@ def create_app():
     with app.app_context():
         try:
             # ✅ Import all models BEFORE db.create_all()
-            from app.models import User, ActivityLog
+            from app.models import ActivityLog
 
             db.create_all()
             app.logger.info("Database tables created successfully")
@@ -103,5 +109,5 @@ def create_app():
 
     return app
 
-# Export create_app and socketio for use in run.py
+# Export for run.py
 __all__ = ['create_app', 'socketio']
