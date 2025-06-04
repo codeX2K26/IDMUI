@@ -2,7 +2,9 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import ActivityLog
 from app.utils.keystone_auth import keystone_authenticate
-from app import db
+from app import db, csrf  # ✅ Import csrf to exempt login route
+from functools import wraps
+from flask import abort
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -31,8 +33,9 @@ class KeystoneUser:
     def get_id(self):
         return f"{self.username}|{self.token}|{self.project_id}"
 
-
+# ✅ Disable CSRF protection only for the login route
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@csrf.exempt
 def login():
     """
     Handle user login using Keystone authentication.
@@ -49,7 +52,7 @@ def login():
 
             # Log user login activity
             activity = ActivityLog(
-                user_id=username,  # Using username as a reference since Keystone doesn't have local DB users
+                user_id=username,
                 action='User logged in via Keystone',
                 ip_address=request.remote_addr
             )
@@ -73,7 +76,7 @@ def logout():
     if current_user.is_authenticated:
         # Log user logout activity
         activity = ActivityLog(
-            user_id=current_user.username,  # Store username since Keystone users aren't in our local DB
+            user_id=current_user.username,
             action='User logged out',
             ip_address=request.remote_addr
         )
