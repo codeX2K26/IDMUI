@@ -29,7 +29,9 @@ class KeystoneUser:
     def get_id(self):
         return f"{self.username}|{self.token}|{self.project_id}"
 
+# ✅ Disable CSRF for login only
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@csrf.exempt
 def login():
     if request.method == 'POST' and 'login' in request.form:
         username = request.form['username']
@@ -55,8 +57,8 @@ def login():
 
     return render_template('auth/login.html')
 
+# ✅ CSRF enabled for registration for security
 @auth_bp.route('/register', methods=['POST'])
-@csrf.exempt  # Optional: use only if CSRF still causes issues
 def register():
     username = request.form['reg_username']
     email = request.form['reg_email']
@@ -65,15 +67,20 @@ def register():
     if User.query.filter_by(username=username).first():
         flash('Username already taken.', 'danger')
         return redirect(url_for('auth.login'))
+
     if User.query.filter_by(email=email).first():
         flash('Email already registered.', 'danger')
         return redirect(url_for('auth.login'))
 
-    user = User(username=username, email=email)
-    user.set_password(password)
-    db.session.add(user)
-    db.session.commit()
-    flash('Registration successful! You can now log in.', 'success')
+    try:
+        user = User(username=username, email=email)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        flash('Registration successful! You can now log in.', 'success')
+    except Exception as e:
+        flash(f'Registration failed: {e}', 'danger')
+
     return redirect(url_for('auth.login'))
 
 @auth_bp.route('/logout')
@@ -90,4 +97,5 @@ def logout():
 
         logout_user()
         flash('Logged out successfully.', 'success')
+
     return redirect(url_for('auth.login'))
