@@ -3,28 +3,64 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow">
-            <div class="card-body">
-                <h3 class="card-title text-center mb-4">IDMUI Login</h3>
-                <form method="POST" action="{{ url_for('auth.login') }}">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">
-                            <i class="fas fa-user"></i> Username
-                        </label>
-                        <input type="text" class="form-control" id="username" name="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">
-                            <i class="fas fa-lock"></i> Password
-                        </label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </button>
-                </form>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <!-- Login Form -->
+        <div class="col-md-5">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">IDMUI Login</h3>
+                    <form method="POST" action="{{ url_for('auth.login') }}">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">
+                                <i class="fas fa-user"></i> Username
+                            </label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock"></i> Password
+                            </label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Form -->
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">New User? Register</h3>
+                    <form method="POST" action="{{ url_for('auth.register') }}">
+                        {{ csrf_token() }}
+                        <div class="mb-3">
+                            <label for="reg_username" class="form-label">
+                                <i class="fas fa-user-plus"></i> Username
+                            </label>
+                            <input type="text" class="form-control" id="reg_username" name="reg_username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reg_email" class="form-label">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            <input type="email" class="form-control" id="reg_email" name="reg_email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reg_password" class="form-label">
+                                <i class="fas fa-key"></i> Password
+                            </label>
+                            <input type="password" class="form-control" id="reg_password" name="reg_password" required>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-user-check"></i> Register
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
