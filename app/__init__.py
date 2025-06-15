@@ -20,26 +20,21 @@ def create_app():
     # Initialize extensions with app
     db.init_app(app)
     login_manager.init_app(app)
-    csrf.init_app(app)
+    csrf.init_app(app)  # ✅ CSRF is enabled globally
     socketio.init_app(app)
 
-    # Configure login manager
     login_manager.login_view = 'auth.login'
     login_manager.login_message_category = 'danger'
 
-    from app.models import User  # ✅ Ensure User model is imported
+    from app.models import User
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.query.get(int(user_id))  # ✅ User loader callback for Flask-Login
+        return User.query.get(int(user_id))
 
-    # Set up logging
+    # Logging setup
     if not app.debug:
-        file_handler = RotatingFileHandler(
-            'idmui.log',
-            maxBytes=1024 * 1024,
-            backupCount=10
-        )
+        file_handler = RotatingFileHandler('idmui.log', maxBytes=1024 * 1024, backupCount=10)
         file_handler.setFormatter(logging.Formatter(
             '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
         ))
@@ -71,20 +66,17 @@ def create_app():
     app.register_blueprint(token_bp)
     app.register_blueprint(group_bp)
 
-    # ✅ Root route to render the login page directly
+    # Root route renders login
     @app.route('/')
     def root():
         return render_template('auth/login.html')
 
     with app.app_context():
         try:
-            # ✅ Import all models BEFORE db.create_all()
             from app.models import ActivityLog
-
             db.create_all()
             app.logger.info("Database tables created successfully")
 
-            # Initialize default data if needed
             from app.utils.database import init_db
             init_db()
 
@@ -92,14 +84,11 @@ def create_app():
             app.logger.error(f"Database initialization failed: {str(e)}")
             raise
 
-        # Register custom Jinja filters
+        # Custom filters
         @app.template_filter('datetimeformat')
         def datetimeformat(value, format='%Y-%m-%d %H:%M:%S'):
-            if value is None:
-                return ""
-            return value.strftime(format)
+            return value.strftime(format) if value else ""
 
-    # Security headers
     @app.after_request
     def add_security_headers(response):
         response.headers['Content-Security-Policy'] = "default-src 'self'"
