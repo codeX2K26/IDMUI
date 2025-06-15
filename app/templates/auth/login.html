@@ -4,64 +4,47 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
+    <div class="col-md-6 col-lg-5">
         <div class="card shadow">
             <div class="card-body">
-                <h3 class="card-title text-center mb-4">IDMUI Login</h3>
+                <h3 class="text-center">IDMUI Login</h3>
                 <form method="POST" action="{{ url_for('auth.login') }}">
+                    {{ csrf_token() }}
+                    <input type="hidden" name="login" value="1">
                     <div class="mb-3">
-                        <label for="username" class="form-label">
-                            <i class="fas fa-user"></i> Username
-                        </label>
-                        <input type="text" class="form-control" id="username" name="username" required>
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" name="username" required>
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label">
-                            <i class="fas fa-lock"></i> Password
-                        </label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" name="password" required>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </button>
+                    <button class="btn btn-primary w-100" type="submit">Login</button>
                 </form>
-                <div class="text-center mt-3">
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#registerModal">New User? Register</a>
-                </div>
+            </div>
+        </div>
+
+        <div class="card shadow mt-4">
+            <div class="card-body">
+                <h5 class="text-center">New User? Register</h5>
+                <form method="POST" action="{{ url_for('auth.register') }}">
+                    {{ csrf_token() }}
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" name="reg_username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="reg_email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" name="reg_password" required>
+                    </div>
+                    <button class="btn btn-success w-100" type="submit">Register</button>
+                </form>
             </div>
         </div>
     </div>
-</div>
-
-<!-- ✅ Registration Modal -->
-<div class="modal fade" id="registerModal" tabindex="-1" aria-labelledby="registerModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content shadow">
-      <form method="POST" action="{{ url_for('auth.register') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <div class="modal-header">
-          <h5 class="modal-title" id="registerModalLabel">Register New User</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="reg_username" class="form-label">Username</label>
-            <input type="text" class="form-control" id="reg_username" name="reg_username" required>
-          </div>
-          <div class="mb-3">
-            <label for="reg_email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="reg_email" name="reg_email" required>
-          </div>
-          <div class="mb-3">
-            <label for="reg_password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="reg_password" name="reg_password" required>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Register</button>
-        </div>
-      </form>
-    </div>
-  </div>
 </div>
 {% endblock %}
