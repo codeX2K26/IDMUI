@@ -3,12 +3,12 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app.models import ActivityLog, User
 from app.utils.keystone_auth import keystone_authenticate
 from app import db, csrf
+from werkzeug.security import generate_password_hash
 from functools import wraps
 from flask import abort
 
 auth_bp = Blueprint('auth', __name__)
 
-# RBAC: Only allow admin users
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -29,15 +29,13 @@ class KeystoneUser:
     def get_id(self):
         return f"{self.username}|{self.token}|{self.project_id}"
 
-# ✅ LOGIN (Keystone)
 @auth_bp.route('/login', methods=['GET', 'POST'])
-@csrf.exempt
 def login():
-    if request.method == 'POST':
+    if request.method == 'POST' and 'login' in request.form:
         username = request.form['username']
         password = request.form['password']
-
         token, project_id = keystone_authenticate(username, password)
+
         if token:
             user = KeystoneUser(token, project_id, username)
             login_user(user)
@@ -53,11 +51,31 @@ def login():
             flash('Login successful', 'success')
             return redirect(url_for('service_management.dashboard'))
         else:
-            flash('Invalid Keystone credentials', 'danger')
+            flash('Invalid credentials or Keystone error', 'danger')
 
     return render_template('auth/login.html')
 
-# ✅ LOGOUT
+@auth_bp.route('/register', methods=['POST'])
+@csrf.exempt  # Optional: use only if CSRF still causes issues
+def register():
+    username = request.form['reg_username']
+    email = request.form['reg_email']
+    password = request.form['reg_password']
+
+    if User.query.filter_by(username=username).first():
+        flash('Username already taken.', 'danger')
+        return redirect(url_for('auth.login'))
+    if User.query.filter_by(email=email).first():
+        flash('Email already registered.', 'danger')
+        return redirect(url_for('auth.login'))
+
+    user = User(username=username, email=email)
+    user.set_password(password)
+    db.session.add(user)
+    db.session.commit()
+    flash('Registration successful! You can now log in.', 'success')
+    return redirect(url_for('auth.login'))
+
 @auth_bp.route('/logout')
 @login_required
 def logout():
@@ -71,25 +89,5 @@ def logout():
         db.session.commit()
 
         logout_user()
-        flash('You have been logged out', 'success')
-
-    return redirect(url_for('auth.login'))
-
-# ✅ REGISTER
-@auth_bp.route('/register', methods=['POST'])
-def register():
-    username = request.form['reg_username']
-    email = request.form['reg_email']
-    password = request.form['reg_password']
-
-    if User.query.filter_by(username=username).first():
-        flash('Username already exists', 'danger')
-        return redirect(url_for('auth.login'))
-
-    new_user = User(username=username, email=email)
-    new_user.set_password(password)  # Must implement this in User model
-    db.session.add(new_user)
-    db.session.commit()
-
-    flash('Registration successful. Please log in.', 'success')
+        flash('Logged out successfully.', 'success')
     return redirect(url_for('auth.login'))
