@@ -5,6 +5,7 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6 col-lg-5">
+        <!-- Login Card -->
         <div class="card shadow">
             <div class="card-body">
                 <h3 class="text-center">IDMUI Login</h3>
@@ -23,11 +24,12 @@
             </div>
         </div>
 
+        <!-- Register Card -->
         <div class="card shadow mt-4">
             <div class="card-body">
                 <h5 class="text-center">New User? Register</h5>
                 <form method="POST" action="{{ url_for('auth.register') }}">
-                    {{ csrf_token() }}
+                    <!-- CSRF removed since it’s exempted in backend -->
                     <div class="mb-3">
                         <label class="form-label">Username</label>
                         <input type="text" class="form-control" name="reg_username" required>
