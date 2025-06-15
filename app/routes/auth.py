@@ -30,7 +30,7 @@ class KeystoneUser:
     def get_id(self):
         return f"{self.username}|{self.token}|{self.project_id}"
 
-# ✅ Login route with CSRF disabled
+# ✅ Login route supporting both local and Keystone login
 @auth_bp.route('/login', methods=['GET', 'POST'])
 @csrf.exempt
 def login():
@@ -38,13 +38,28 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        token, project_id = keystone_authenticate(username, password)
+        # ✅ First try local user authentication
+        local_user = User.query.filter_by(username=username).first()
+        if local_user and local_user.check_password(password):
+            login_user(local_user)
 
+            activity = ActivityLog(
+                user_id=local_user.id,
+                action='User logged in via local DB',
+                ip_address=request.remote_addr
+            )
+            db.session.add(activity)
+            db.session.commit()
+
+            flash('Login successful (local user)', 'success')
+            return redirect(url_for('service_management.dashboard'))
+
+        # ✅ Then try Keystone if local login fails
+        token, project_id = keystone_authenticate(username, password)
         if token:
             user = KeystoneUser(token, project_id, username)
             login_user(user)
 
-            # Log activity
             activity = ActivityLog(
                 user_id=username,
                 action='User logged in via Keystone',
@@ -53,22 +68,22 @@ def login():
             db.session.add(activity)
             db.session.commit()
 
-            flash('Login successful', 'success')
+            flash('Login successful (Keystone)', 'success')
             return redirect(url_for('service_management.dashboard'))
-        else:
-            flash('Invalid credentials or Keystone authentication failed.', 'danger')
+
+        # ❌ If both fail
+        flash('Invalid credentials. Try again.', 'danger')
 
     return render_template('auth/login.html')
 
-# ✅ Registration route with CSRF disabled temporarily (as per request)
+# ✅ Registration route
 @auth_bp.route('/register', methods=['POST'])
-@csrf.exempt
+@csrf.exempt  # ❗Temporarily disabled CSRF — re-enable later for production
 def register():
     username = request.form.get('reg_username')
     email = request.form.get('reg_email')
     password = request.form.get('reg_password')
 
-    # Check for duplicates
     if User.query.filter_by(username=username).first():
         flash('Username already exists.', 'danger')
         return redirect(url_for('auth.login'))
